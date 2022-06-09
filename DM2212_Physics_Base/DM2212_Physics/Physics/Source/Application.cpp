@@ -14,10 +14,15 @@
 #include "SceneVector.h"
 #include "SceneKinematics.h"
 #include "SceneAsteroid.h"
+#include "SceneMainMenu.h"
+#include "SceneWin.h"
+#include "SceneLose.h"
+
 GLFWwindow* m_window;
 const unsigned char FPS = 60; // FPS of this game
 const unsigned int frameTime = 1000 / FPS; // time for each frame
 int m_width, m_height;
+unsigned Application::ChangeScene;
 
 //Define an error callback
 static void error_callback(int error, const char* description)
@@ -62,6 +67,11 @@ int Application::GetWindowHeight()
 	return m_height;
 }
 
+void Application::SceneManager(int i)
+{
+	ChangeScene = i;
+}
+
 Application::Application()
 {
 }
@@ -94,6 +104,8 @@ void Application::Init()
 	m_height = 600;
 	m_window = glfwCreateWindow(m_width, m_height, "Physics", NULL, NULL);
 
+	ChangeScene = 1;
+
 	//If the window couldn't be created
 	if (!m_window)
 	{
@@ -124,14 +136,48 @@ void Application::Init()
 void Application::Run()
 {
 	//Main Loop
-	Scene *scene = new SceneAsteroid();
+	Scene* scenegame = new SceneAsteroid();
+	Scene* scenemenu = new SceneMainMenu();
+	Scene* scenewin = new SceneWin();
+	Scene* scenelose = new SceneLose();
+	Scene* scene = scenegame;
 	scene->Init();
+	scenegame->Init();
+	scenemenu->Init();
+	scenewin->Init();
+	scenelose->Init();
 
 	m_timer.startTimer();    // Start timer to calculate how long it takes to render this frame
 	while (!glfwWindowShouldClose(m_window) && !IsKeyPressed(VK_ESCAPE))
 	{
+		if (IsKeyPressed(VK_F1))
+		{
+			SceneManager(1);
+		}
+		else if (IsKeyPressed(VK_F2))
+		{
+			SceneManager(2);
+		}
 		scene->Update(m_timer.getElapsedTime());
 		scene->Render();
+
+		switch (ChangeScene)
+		{
+		case 1:
+			scene = scenegame;
+			break;
+		case 2:
+			scene = scenemenu;
+			break;
+		case 3:
+			scene = scenewin;
+			break;
+		case 4:
+			scene = scenelose;
+			break;
+		default:
+			break;
+		}
 		//Swap buffers
 		glfwSwapBuffers(m_window);
 		//Get and organize events, like keyboard and mouse input, window resizing, etc...

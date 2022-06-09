@@ -28,7 +28,8 @@ public:
 	void RenderGO(GameObject *go);
 	float CalculateAdditionalForce(GameObject* go1, GameObject* go2);
 	//In .h, outside class
-	void Wrap(float& val, float bound);
+	//void Wrap(float& val, float bound);
+	void Bound(float& val, float bound);
 
 	GameObject* FetchGO();
 protected:
@@ -44,7 +45,36 @@ protected:
 	int m_objectCount;
 	int m_lives;
 	int m_score;
+	int angularvel;
 
+	//powerup
+	bool powerUpActivated;
+	bool powerUpHealActivated;
+	bool powerUpCanonActivated;
+	bool powerUpDamageActivated;
+	int powerUpHeal;
+	int powerUpDamage;
+	int powerUpPoints;
+
+	//enemies
+	int m_enemy_lives;
+	int m_enemy_points;
+	int m_enemy_damage;
+
+	int m_player_damage;
+
+	//asteroids
+	int m_asteroid_small_lives;
+	int m_asteroid_lives;
+	int m_asteroid_points;
+
+	int powerup;
+
+	double timer;
+	double poweruptimer;
+	double activatehealtimer;
+	double activatecanontimer;
+	double activatedamagetimer;
 	double prevElapsed;
 	double elapsedTime;
 };

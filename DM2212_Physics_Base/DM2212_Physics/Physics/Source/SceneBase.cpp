@@ -105,14 +105,38 @@ void SceneBase::Init()
 	meshList[GEO_AXES] = MeshBuilder::GenerateAxes("reference", 1000, 1000, 1000);
 	meshList[GEO_BALL] = MeshBuilder::GenerateSphere("ball", Color(1, 1, 1), 10, 10, 1.f);
 	meshList[GEO_CUBE] = MeshBuilder::GenerateCube("cube", Color(1, 1, 1), 2.f);
+	meshList[GEO_BACKGROUND] = MeshBuilder::GenerateQuad("background", Color(1, 1, 1), 1.f, 10);
+	meshList[GEO_BACKGROUND]->textureID = LoadTexture("Image//space_background.png");
 	meshList[GEO_SHIP] = MeshBuilder::GenerateQuad("ship", Color(1, 1, 1), 2.f);
 	meshList[GEO_SHIP]->textureID = LoadTexture("Image//playerShip2_blue.png");
+	meshList[GEO_BULLET] = MeshBuilder::GenerateQuad("bullet", Color(1, 1, 1), 2.f);
+	meshList[GEO_BULLET]->textureID = LoadTexture("Image//laserBlue05.png");
 	//meshList[GEO_SHIP]->textureID = LoadTGA("Image//triangle.tga");
-	meshList[GEO_ASTEROID] = MeshBuilder::GenerateQuad("asteroid", Color(1, 1, 1), 2.f);
-	meshList[GEO_ASTEROID]->textureID = LoadTexture("Image//meteorBrown_big3.png");
 
 	meshList[GEO_BLACKHOLE] = MeshBuilder::GenerateSphere("bh", Color(1, 0, 0), 10, 10, 1.f);
 	meshList[GEO_WHITEHOLE] = MeshBuilder::GenerateSphere("wh", Color(0, 0, 1), 10, 10, 1.f);
+
+	//enemy
+	meshList[GEO_ENEMY] = MeshBuilder::GenerateQuad("enemy", Color(1, 1, 1), 2.f);
+	meshList[GEO_ENEMY]->textureID = LoadTexture("Image//enemyBlack2.png");
+	meshList[GEO_ENEMYBULLET] = MeshBuilder::GenerateQuad("enemybullet", Color(1, 1, 1), 2.f);
+	meshList[GEO_ENEMYBULLET]->textureID = LoadTexture("Image//laserRed05.png");
+
+	//powerups
+	meshList[GEO_POWERUPHEAL] = MeshBuilder::GenerateQuad("powerupheal", Color(1, 1, 1), 2.f);
+	meshList[GEO_POWERUPHEAL]->textureID = LoadTexture("Image//powerupRed_shield.png");
+	meshList[GEO_POWERUPCANON] = MeshBuilder::GenerateQuad("powerupcanon", Color(1, 1, 1), 2.f);
+	meshList[GEO_POWERUPCANON]->textureID = LoadTexture("Image//powerupGreen_bolt.png");
+	meshList[GEO_CANON] = MeshBuilder::GenerateQuad("powerupcanon", Color(1, 1, 1), 2.f);
+	meshList[GEO_CANON]->textureID = LoadTexture("Image//laserBlue14.png");
+	meshList[GEO_POWERUPDAMAGE] = MeshBuilder::GenerateQuad("powerupdamage", Color(1, 1, 1), 2.f);
+	meshList[GEO_POWERUPDAMAGE]->textureID = LoadTexture("Image//powerupYellow_star.png");
+ 
+	//asteroids
+	meshList[GEO_ASTEROID] = MeshBuilder::GenerateQuad("asteroid", Color(1, 1, 1), 2.f);
+	meshList[GEO_ASTEROID]->textureID = LoadTexture("Image//meteorBrown_big3.png");
+	meshList[GEO_ASTEROID_SMALL] = MeshBuilder::GenerateQuad("asteroidsmall", Color(1, 1, 1), 2.f);
+	meshList[GEO_ASTEROID_SMALL]->textureID = LoadTexture("Image//meteorBrown_small1.png");
 
 	meshList[GEO_TEXT] = MeshBuilder::GenerateText("text", 16, 16);
 	meshList[GEO_TEXT]->textureID = LoadTGA("Image//calibri.tga");

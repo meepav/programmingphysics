@@ -75,7 +75,7 @@ Then generate the VBO/IBO and store them in Mesh object
 \return Pointer to mesh storing VBO/IBO of quad
 */
 /******************************************************************************/
-Mesh* MeshBuilder::GenerateQuad(const std::string &meshName, Color color, float length)
+Mesh* MeshBuilder::GenerateQuad(const std::string &meshName, Color color, float length, float repeatnumber)
 {
 	Vertex v;
 	std::vector<Vertex> vertex_buffer_data;

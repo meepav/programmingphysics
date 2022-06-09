@@ -11,10 +11,29 @@ struct GameObject
 		GO_BALL,
 		GO_CUBE,
 		GO_SHIP,
-		GO_ASTEROID,
 		GO_BULLET,
 		GO_BLACKHOLE,
 		GO_WHITEHOLE,
+
+		// enemy
+		GO_ENEMY,
+		GO_ENEMYBULLET,
+
+		// powerups
+		GO_POWERUPHEAL,
+		GO_POWERUPCANON,
+		GO_POWERUPDAMAGE,
+
+		// asteroids
+		GO_ASTEROID,
+		GO_ASTEROID_SMALL,
+
+		GO_TEST,
+		GO_PH, //heal
+		GO_PC, //canon
+		GO_PD, //damage
+		GO_CANON,
+
 		GO_TOTAL, //must be last
 	};
 	GAMEOBJECT_TYPE type;
@@ -24,6 +43,9 @@ struct GameObject
 	bool active;
 	float mass;
 	float angle;
+	float hp;
+	float points;
+	float timer;
 
 	Vector3 direction;
 	float momentOfInertia;

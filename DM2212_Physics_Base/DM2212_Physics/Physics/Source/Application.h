@@ -3,6 +3,7 @@
 #define APPLICATION_H
 
 #include "timer.h"
+#include <wincrypt.h>
 
 class Application
 {
@@ -20,6 +21,9 @@ public:
 	static void GetCursorPos(double *xpos, double *ypos);
 	static int GetWindowWidth();
 	static int GetWindowHeight();
+	static unsigned ChangeScene;
+	static void SceneManager(int i);
+
 
 private:
 	Application();

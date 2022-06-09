@@ -2,8 +2,9 @@
 #include "GL\glew.h"
 #include "Application.h"
 #include <sstream>
+#include <iomanip>
 
-const float SceneAsteroid::ROTATION_SPEED = 1.0f;
+const float SceneAsteroid::ROTATION_SPEED = 4.0f;
 const float SceneAsteroid::MAX_ROTATION_SPEED = 5.0f;
 const float SceneAsteroid::GRAVITY_CONSTANT = 3.0f;
 
@@ -35,23 +36,51 @@ void SceneAsteroid::Init()
 	}
 
 	//Exercise 2b: Initialize m_lives and m_score
-	m_lives = 3;
+	m_lives = 100;
 	m_score = 0;
+
+	//initialise powerups
+	powerUpActivated = false;
+	powerUpHealActivated = false;
+	powerUpDamageActivated = false;
+	powerUpCanonActivated = false;
+
+	powerUpHeal = 50;
+	powerUpDamage = 20;
+	powerUpPoints = 100;
+
+	//initialise enemies
+	m_enemy_lives = 100;
+	m_enemy_points = 50;
+	m_enemy_damage = 5;
+
+	m_player_damage = 10;
+
+	//initialise asteroids
+	m_asteroid_lives = 50;
+	m_asteroid_small_lives = 25;
+	m_asteroid_points = 20;
 
 	//Exercise 2c: Construct m_ship, set active, type, scale and pos
 	m_ship = new GameObject(GameObject::GO_SHIP);
 	m_ship->active = true;
-	m_ship->scale.Set(1, 1, 1);
-	m_ship->pos.Set(m_worldWidth / 2, m_worldHeight / 2);
+	m_ship->scale.Set(2.5, 2.5, 1);
+	m_ship->pos.Set(m_worldWidth / 2, m_worldHeight / 2, 1);
 	m_ship->vel.Set(0, 0, 0);
-	m_ship->direction.Set(0, 1, 0); // direction of ship thats facing
+	m_ship->direction.Set(-1, 0, 0); // direction of ship thats facing
 
 	m_ship->momentOfInertia = m_ship->mass * m_ship->scale.x * m_ship->scale.x;
 	m_ship->angularVelocity = 0;
+	angularvel = 0;
 
 	m_torque.SetZero();
 
 	prevElapsed = elapsedTime = 0.0;
+	timer = 0;
+	poweruptimer = Math::RandIntMinMax(1, 10);
+	activatehealtimer = 0;
+	activatecanontimer = 0;
+	activatedamagetimer = 0;
 }
 
 GameObject* SceneAsteroid::FetchGO()
@@ -84,6 +113,35 @@ void SceneAsteroid::Update(double dt)
 {
 	SceneBase::Update(dt);
 	elapsedTime += dt;
+	timer += dt;
+	poweruptimer -= dt;
+	
+
+	if (powerUpHealActivated == true)
+	{
+		activatehealtimer += dt;
+		if (activatehealtimer >= 5)
+		{
+			powerUpHealActivated = false;
+		}
+	}	
+	if (powerUpCanonActivated == true)
+	{
+		activatecanontimer += dt;
+		if (activatecanontimer >= 5)
+		{
+			powerUpCanonActivated = false;
+		}
+	}
+	if (powerUpDamageActivated == true)
+	{
+		activatedamagetimer += dt;
+		if (activatedamagetimer >= 5)
+		{
+			powerUpDamageActivated = false;
+		}
+	}
+
 
 	//Calculating aspect ratio
 	m_worldHeight = 100.f;
@@ -108,6 +166,12 @@ void SceneAsteroid::Update(double dt)
 	{
 		m_force += m_ship->direction * ROTATION_SPEED;
 		m_torque += Vector3(-m_ship->scale.x, -m_ship->scale.y, 0).Cross(Vector3(ROTATION_SPEED, 0, 0));
+		if (angularvel == 2)
+		{
+			m_ship->angularVelocity = 0;
+		}
+		angularvel = 1;
+		
 	}
 	if (Application::IsKeyPressed('S'))
 	{
@@ -117,6 +181,12 @@ void SceneAsteroid::Update(double dt)
 	{
 		m_force += m_ship->direction * ROTATION_SPEED;
 		m_torque += Vector3(-m_ship->scale.x, m_ship->scale.y, 0).Cross(Vector3(ROTATION_SPEED, 0, 0));
+		if (angularvel == 1)
+		{
+			m_ship->angularVelocity = 0;
+		}
+		angularvel = 2;
+		
 	}
 	//Exercise 8: use 2 keys to increase and decrease mass of ship
 	if (Application::IsKeyPressed('O'))
@@ -133,19 +203,74 @@ void SceneAsteroid::Update(double dt)
 		}
 		m_ship->momentOfInertia = m_ship->mass * m_ship->scale.x * m_ship->scale.x;
 	}
-	//Exercise 11: use a key to spawn some asteroids
-	if (Application::IsKeyPressed('V'))
+
+	if (timer >= 2)
 	{
-		//Spawn 25 asteroids
-		for (int i = 0; i < 25; ++i)
+		//Spawn random asteroids
+		for (int i = 0; i < 3; ++i)
 		{
 			//Create Asteroid
 			GameObject* go = FetchGO();
 			go->type = GameObject::GO_ASTEROID;
-			go->pos.Set(Math::RandFloatMinMax(0, m_worldWidth), Math::RandFloatMinMax(0, m_worldHeight), 0);
-			go->vel.Set(Math::RandFloatMinMax(-20, 20), Math::RandFloatMinMax(-20, 20), 0);
-			go->scale.Set(1, 1, 1);
+			go->pos.Set(0, Math::RandFloatMinMax(0, m_worldHeight), 0);
+			go->vel.Set(Math::RandFloatMinMax(10, 20), 0, 0);
+			go->scale.Set(6.0f, 6.0f, 1);
+			go->hp = 50;
+			go->points = 20;
 		}
+		for (int i = 0; i < 3; ++i)
+		{
+			//Create Asteroid
+			GameObject* go = FetchGO();
+			go->type = GameObject::GO_ASTEROID_SMALL;
+			go->pos.Set(0, Math::RandFloatMinMax(0, m_worldHeight), 0);
+			go->vel.Set(Math::RandFloatMinMax(10, 20), 0, 0);
+			go->scale.Set(3.0f, 3.0f, 1);
+			go->hp = 25;
+			go->points = 20;
+		}
+		timer = 0;
+	}
+
+	// spawning powerups at random timings
+	if (poweruptimer <= 0)
+	{
+		powerup = Math::RandIntMinMax(1, 3);
+		if (powerup == 1)
+		{
+			//heal
+			GameObject* heal = FetchGO();
+			heal->type = GameObject::GO_PH;
+			heal->pos.Set(0, Math::RandFloatMinMax(0, m_worldHeight), 0);
+			heal->vel.Set(Math::RandFloatMinMax(10, 20), 0, 0);
+			heal->scale.Set(5.0f, 5.0f, 1.0f);
+			heal->points = 100;
+			heal->active = true;
+		}
+		else if (powerup == 2)
+		{
+			//canon
+			GameObject* canon = FetchGO();
+			canon->type = GameObject::GO_PC;
+			canon->pos.Set(0, Math::RandFloatMinMax(0, m_worldHeight), 0);
+			canon->vel.Set(Math::RandFloatMinMax(10, 20), 0, 0);
+			canon->scale.Set(5.0f, 5.0f, 1.0f);
+			canon->points = 100;
+			canon->active = true;
+		}
+		else if (powerup == 3)
+		{
+			//damage
+			GameObject* damage = FetchGO();
+			damage->type = GameObject::GO_PD;
+			damage->pos.Set(0, Math::RandFloatMinMax(0, m_worldHeight), 0);
+			damage->vel.Set(Math::RandFloatMinMax(10, 20), 0, 0);
+			damage->scale.Set(5.0f, 5.0f, 1.0f);
+			damage->points = 100;
+			damage->active = true;
+		}
+		poweruptimer = Math::RandIntMinMax(1, 10);
+		std::cout << powerup << std::endl;
 	}
 
 	//Exercise 14: use a key to spawn a bullet
@@ -158,11 +283,11 @@ void SceneAsteroid::Update(double dt)
 			go->type = GameObject::GO_BULLET;
 			go->pos = m_ship->pos;
 			go->vel = m_ship->direction * BULLET_SPEED;
-			go->scale.Set(0.2f, 0.2f, 1.0f);
+			go->scale.Set(0.6f, 0.7f, 1.0f);
 			prevElapsed = elapsedTime;
 		}
 	}
-		
+	
 	double x, y;
 	Application::GetCursorPos(&x, &y);
 	int w = Application::GetWindowWidth();
@@ -233,13 +358,27 @@ void SceneAsteroid::Update(double dt)
 	m_ship->angle = Math::RadianToDegree(atan2(m_ship->direction.y, m_ship->direction.x));
 
 	//Exercise 9: wrap ship position if it leaves screen
-	Wrap(m_ship->pos.x, m_worldWidth);
-	Wrap(m_ship->pos.y, m_worldHeight);
+	//Wrap(m_ship->pos.x, m_worldWidth);
+	//Wrap(m_ship->pos.y, m_worldHeight);
+
+	Bound(m_ship->pos.x, m_worldWidth);
+	Bound(m_ship->pos.y, m_worldHeight);
+
+	//temporary placeholders
+	//spawn enemy
+	if (Application::IsKeyPressed(VK_F9))
+	{
+		GameObject* enemy = FetchGO();
+		enemy->type = GameObject::GO_ENEMY;
+		enemy->pos.Set(30, 35, 0);
+		//go->vel = m_ship->direction * BULLET_SPEED;
+		enemy->scale.Set(1.0f, 1.0f, 1.0f);
+	}
 
 	for(std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
 	{
 		GameObject *go = (GameObject *)*it;
-		if(go->active)
+		if (go->active)
 		{
 			//Move the active game object
 			go->pos += go->vel * dt * m_speed;
@@ -252,13 +391,13 @@ void SceneAsteroid::Update(double dt)
 				float cRad = (m_ship->scale.x + go->scale.x) * (m_ship->scale.x + go->scale.x);
 				if (dis < cRad)
 				{
-					go->active = false;
-					m_lives -= 1;
+					//go->active = false;
+					//m_lives -= 1;
 				}
 
 				//Exercise 13: asteroids should wrap around the screen like the ship
-				Wrap(go->pos.x, m_worldWidth);
-				Wrap(go->pos.y, m_worldHeight);
+				/*Wrap(go->pos.x, m_worldWidth);
+				Wrap(go->pos.y, m_worldHeight);*/
 			}
 
 			//Exercise 16: unspawn bullets when they leave screen
@@ -276,46 +415,125 @@ void SceneAsteroid::Update(double dt)
 				for (std::vector<GameObject*>::iterator it2 = m_goList.begin(); it2 != m_goList.end(); ++it2)
 				{
 					GameObject* go2 = (GameObject*)*it2;
-					if (go2->type == GameObject::GO_ASTEROID && go2->active)
+					if (go2->type == GameObject::GO_ASTEROID || go2->type == GameObject::GO_ASTEROID_SMALL && go2->active)
 					{
 						float dis = go->pos.DistanceSquared(go2->pos);
 						float rad = (go->scale.x + go2->scale.x) * (go->scale.x + go2->scale.x);
 						if (dis < rad)
 						{
 							go->active = false;
-							go2->active = false;
-							m_score += 2;
+							go2->hp -= m_player_damage;
+							
+							if (go2->hp <= 0) // checking for selected asteroid hp
+							{
+								go2->active = false;
+								m_score += go2->points;
+							}
 						}
 					}
 				}
 			}
 
-			else if (go->type == GameObject::GO_BLACKHOLE 
-				|| go->type == GameObject::GO_WHITEHOLE)
+			//else if (go->type == GameObject::GO_BLACKHOLE || go->type == GameObject::GO_WHITEHOLE)
+			//{
+			//	// Code that affect the ship
+			//	// Affect everything other than the ship
+			//	for (int j = 0; j < m_goList.size(); j++)
+			//	{
+			//		if (m_goList[j]->active &&
+			//			m_goList[j]->type != GameObject::GO_BLACKHOLE &&
+			//			m_goList[j]->type != GameObject::GO_WHITEHOLE)
+			//		{
+			//			if (m_goList[j]->pos.DistanceSquared(go->pos) < 3600.0f)
+			//			{
+			//				//1 Case Destroy the Object
+			//				if (m_goList[j]->pos.DistanceSquared(go->pos) < 4.0f)
+			//				{
+			//					go->mass += m_goList[j]->mass;
+			//					m_goList[j]->active = false;
+			//				}
+			//				//2 Not close enough... affect the object through force
+			//				else
+			//				{
+			//					float sign = (go->type == GameObject::GO_WHITEHOLE) ? -1 : 1;
+			//					Vector3	dir = sign * (go->pos - m_goList[j]->pos).Normalized();
+			//					float force = CalculateAdditionalForce(m_goList[j], go);
+			//					m_goList[j]->vel += 1.f / m_goList[j]->mass * dir * force * dt * m_speed;
+			//				}
+			//			}
+			//		}
+			//	}
+			//}
+			else if (go->type == GameObject::GO_PH || go->type == GameObject::GO_PC ||go->type == GameObject::GO_PD)
 			{
-				// Code that affect the ship
-				// Affect everything other than the ship
-				for (int j = 0; j < m_goList.size(); j++)
+				if (go->pos.x > m_worldWidth
+					|| go->pos.x <0
+					|| go->pos.y > m_worldHeight
+					|| go->pos.y < 0)
 				{
-					if (m_goList[j]->active && 
-						m_goList[j]->type != GameObject::GO_BLACKHOLE &&
-						m_goList[j]->type != GameObject::GO_WHITEHOLE)
+					go->active = false;
+					continue;
+				}
+				float dis = go->pos.DistanceSquared(m_ship->pos);
+				float rad = (go->scale.x + m_ship->scale.x) * (go->scale.x + m_ship->scale.x);
+				if (dis < rad)
+				{
+					go->active = false;
+					powerUpActivated;
+					m_score += go->points;
+					if (go->type == GameObject::GO_PH) // heal
 					{
-						if (m_goList[j]->pos.DistanceSquared(go->pos) < 3600.0f)
+						m_lives += 50;
+						if (m_lives >= 100)
 						{
-							//1 Case Destroy the Object
-							if (m_goList[j]->pos.DistanceSquared(go->pos) < 4.0f)
+							m_lives = 100;
+						}
+						powerUpHealActivated = true;
+					}
+					else if (go->type == GameObject::GO_PC) // canon
+					{
+						// add canon feature 
+						powerUpCanonActivated = true;
+						GameObject* go = FetchGO();
+						go->type = GameObject::GO_CANON;
+						go->pos.Set(m_worldWidth / 2, m_ship->pos.y, 0);
+						go->vel.Set(0);
+						go->scale.Set(m_worldWidth / 2, 10.0f, 1.0f);
+						go->timer = 5;
+					}
+					else if (go->type == GameObject::GO_PD)
+					{
+						m_player_damage += 20;
+						powerUpDamageActivated = true;
+					}
+				}
+			}
+			else if (go->type == GameObject::GO_CANON)
+			{
+				go->timer -= dt;
+				if (go->timer <= 0)
+				{
+					go->active = false;
+				}
+				for (std::vector<GameObject*>::iterator it2 = m_goList.begin(); it2 != m_goList.end(); ++it2)
+				{
+					GameObject* go2 = (GameObject*)*it2;
+					if (go2->type == GameObject::GO_ASTEROID || go2->type == GameObject::GO_ASTEROID_SMALL && go2->active)
+					{
+						float dis = go->pos.DistanceSquared(go2->pos);
+						float rad = (go->scale.x + go2->scale.x) * (go->scale.x + go2->scale.x);
+
+						if (go->pos.x < go2->pos.x + go2->scale.x * 2 && 
+							go->pos.x + go->scale.x * 2 > go2->pos.x &&
+							go->pos.y < go2->pos.y + go2->scale.y * 2 &&
+							go->pos.y + go->scale.y * 2 > go2->pos.y)
+						{
+							go2->hp -= 100;
+
+							if (go2->hp <= 0) // checking for selected asteroid hp
 							{
-								go->mass += m_goList[j]->mass;
-								m_goList[j]->active = false;
-							}
-							//2 Not close enough... affect the object through force
-							else
-							{
-								float sign = (go->type == GameObject::GO_WHITEHOLE) ? -1 : 1;
-								Vector3	dir = sign * (go->pos - m_goList[j]->pos).Normalized();
-								float force = CalculateAdditionalForce(m_goList[j], go);
-								m_goList[j]->vel += 1.f / m_goList[j]->mass * dir * force * dt * m_speed;
+								go2->active = false;
+								m_score += go2->points;
 							}
 						}
 					}
@@ -342,19 +560,13 @@ void SceneAsteroid::RenderGO(GameObject *go)
 		break;
 		//Exercise 17a: render a ship texture or 3D ship model
 		//Exercise 17b:	re-orientate the ship with velocity
-	case GameObject::GO_ASTEROID:
-		modelStack.PushMatrix();
-		modelStack.Translate(go->pos.x, go->pos.y, go->pos.z);
-		modelStack.Scale(go->scale.x, go->scale.y, go->scale.z);
-		RenderMesh(meshList[GEO_ASTEROID], false);
-		modelStack.PopMatrix();
 		//Exercise 4b: render a cube with length 2
 		break;
 	case GameObject::GO_BULLET:
 		modelStack.PushMatrix();
 		modelStack.Translate(go->pos.x, go->pos.y, go->pos.z);
 		modelStack.Scale(go->scale.x, go->scale.y, go->scale.z);
-		RenderMesh(meshList[GEO_BALL], false);
+		RenderMesh(meshList[GEO_BULLET], false);
 		modelStack.PopMatrix();
 		break;
 	case GameObject::GO_BLACKHOLE:
@@ -371,6 +583,66 @@ void SceneAsteroid::RenderGO(GameObject *go)
 		RenderMesh(meshList[GEO_WHITEHOLE], false);
 		modelStack.PopMatrix();
 		break;
+
+	//enemies
+	case GameObject::GO_ENEMY:
+		modelStack.PushMatrix();
+		modelStack.Translate(go->pos.x, go->pos.y, go->pos.z);
+		modelStack.Scale(go->scale.x, go->scale.y, go->scale.z);
+		RenderMesh(meshList[GEO_ENEMY], false);
+		modelStack.PopMatrix();
+		break;
+	case GameObject::GO_ENEMYBULLET:
+		modelStack.PushMatrix();
+		modelStack.Translate(go->pos.x, go->pos.y, go->pos.z);
+		modelStack.Scale(go->scale.x, go->scale.y, go->scale.z);
+		RenderMesh(meshList[GEO_ENEMYBULLET], false);
+		modelStack.PopMatrix();
+		break;
+
+	//powerups
+	case GameObject::GO_PH:
+		modelStack.PushMatrix();
+		modelStack.Translate(go->pos.x, go->pos.y, go->pos.z);
+		modelStack.Scale(go->scale.x, go->scale.y, go->scale.z);
+		RenderMesh(meshList[GEO_POWERUPHEAL], false);
+		modelStack.PopMatrix();
+		break;
+	case GameObject::GO_PC:
+		modelStack.PushMatrix();
+		modelStack.Translate(go->pos.x, go->pos.y, go->pos.z);
+		modelStack.Scale(go->scale.x, go->scale.y, go->scale.z);
+		RenderMesh(meshList[GEO_POWERUPCANON], false);
+		modelStack.PopMatrix();
+		break;
+	case GameObject::GO_PD:
+		modelStack.PushMatrix();
+		modelStack.Translate(go->pos.x, go->pos.y, go->pos.z);
+		modelStack.Scale(go->scale.x, go->scale.y, go->scale.z);
+		RenderMesh(meshList[GEO_POWERUPDAMAGE], false);
+		modelStack.PopMatrix();
+		break;
+
+	//asteroids
+	case GameObject::GO_ASTEROID_SMALL:
+		modelStack.PushMatrix();
+		modelStack.Translate(go->pos.x, go->pos.y, go->pos.z);
+		modelStack.Scale(go->scale.x, go->scale.y, go->scale.z);
+		RenderMesh(meshList[GEO_ASTEROID_SMALL], false);
+		modelStack.PopMatrix();
+		break;
+	case GameObject::GO_ASTEROID:
+		modelStack.PushMatrix();
+		modelStack.Translate(go->pos.x, go->pos.y, go->pos.z);
+		modelStack.Scale(go->scale.x, go->scale.y, go->scale.z);
+		RenderMesh(meshList[GEO_ASTEROID], false);
+		modelStack.PopMatrix();
+	case GameObject::GO_CANON:
+		modelStack.PushMatrix();
+		modelStack.Translate(go->pos.x, go->pos.y, go->pos.z);
+		modelStack.Scale(go->scale.x, go->scale.y, go->scale.z);
+		RenderMesh(meshList[GEO_CANON], false);
+		modelStack.PopMatrix();
 	}
 }
 
@@ -380,15 +652,27 @@ float SceneAsteroid::CalculateAdditionalForce(GameObject* go1, GameObject* go2)
 	return (GRAVITY_CONSTANT * go1->mass * go2->mass) / radiusSquared;
 }
 
-void SceneAsteroid::Wrap(float& val, float bound)
+//void SceneAsteroid::Wrap(float& val, float bound)
+//{
+//	if (val < 0)
+//	{
+//		val += bound;
+//	}
+//	else if (val > bound)
+//	{
+//		val -= bound;
+//	}
+//}
+
+void SceneAsteroid::Bound(float& val, float bound)
 {
 	if (val < 0)
 	{
-		val += bound;
+		val = 0;
 	}
 	else if (val > bound)
 	{
-		val -= bound;
+		val = bound;
 	}
 }
 
@@ -413,12 +697,22 @@ void SceneAsteroid::Render()
 	
 	RenderMesh(meshList[GEO_AXES], false);
 
+	modelStack.PushMatrix();
+	modelStack.Translate(0, 0, -1);
+	modelStack.Scale(300, 200, 1);
+	RenderMesh(meshList[GEO_BACKGROUND], false);
+	modelStack.PopMatrix();
+
 	for(std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
 	{
 		GameObject *go = (GameObject *)*it;
 		if(go->active)
 		{
 			RenderGO(go);
+			if (go->type == GameObject::GO_TEST)
+			{
+				std::cout << "hi" << std::endl;
+			}
 		}
 	}
 
@@ -428,34 +722,59 @@ void SceneAsteroid::Render()
 	std::ostringstream ss;
 	//Exercise 5a: Render m_lives, m_score
 	ss.str("");
-	ss << "lives: " << m_lives << " Score:" << m_score;
-	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 9);
+	ss << "Health: " << m_lives << "/100HP";
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 57);
 
+	//Render score
 	ss.str("");
+	ss << std::setfill('0') << std::setw(5) << m_score;
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 65, 57);
+
+	//Render powerup
+	if (powerUpHealActivated == true)
+	{
+		ss.str("");
+		ss << "Heal Activated";
+		RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 54);
+	}
+	else if (powerUpCanonActivated == true)
+	{
+		ss.str("");
+		ss << "Canon Activated";
+		RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 54);
+	}
+	else if (powerUpDamageActivated == true)
+	{
+		ss.str("");
+		ss << "2x Damage Activated";
+		RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 54);
+	}
+
+	/*ss.str("");
 	ss << "Pos: " << m_ship->pos;
-	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 12);
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 12);*/
 
-	ss.str("");
+	/*ss.str("");
 	ss << "Vel: " << m_ship->vel;
-	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 15);
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 15);*/
 
-	ss.str("");
+	/*ss.str("");
 	ss << "Mass: " << m_ship->mass;
-	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 18);
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 18);*/
 
 	//Remember to add to Render
 	//below RenderMesh(meshList[GEO_AXES], false);
 	RenderGO(m_ship);
 
 
-	ss.precision(3);
-	ss << "Speed: " << m_speed;
-	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 6);
+	//ss.precision(3);
+	//ss << "Speed: " << m_speed;
+	//RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 6);
 	
 	ss.str("");
 	ss.precision(5);
 	ss << "FPS: " << fps;
-	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 3);
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 1);
 }
 
 void SceneAsteroid::Exit()
