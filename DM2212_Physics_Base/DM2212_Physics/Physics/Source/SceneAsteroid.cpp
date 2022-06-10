@@ -81,6 +81,8 @@ void SceneAsteroid::Init()
 	activatehealtimer = 0;
 	activatecanontimer = 0;
 	activatedamagetimer = 0;
+	enemytimer = 0;
+	survive = 0;
 }
 
 GameObject* SceneAsteroid::FetchGO()
@@ -115,14 +117,16 @@ void SceneAsteroid::Update(double dt)
 	elapsedTime += dt;
 	timer += dt;
 	poweruptimer -= dt;
-	
-
+	enemyspawn -= dt;
+	enemytimer -= dt;
+	survive += dt;
 	if (powerUpHealActivated == true)
 	{
 		activatehealtimer += dt;
 		if (activatehealtimer >= 5)
 		{
 			powerUpHealActivated = false;
+			activatehealtimer = 0;
 		}
 	}	
 	if (powerUpCanonActivated == true)
@@ -131,6 +135,7 @@ void SceneAsteroid::Update(double dt)
 		if (activatecanontimer >= 5)
 		{
 			powerUpCanonActivated = false;
+			activatecanontimer = 0;
 		}
 	}
 	if (powerUpDamageActivated == true)
@@ -139,9 +144,18 @@ void SceneAsteroid::Update(double dt)
 		if (activatedamagetimer >= 5)
 		{
 			powerUpDamageActivated = false;
+			activatedamagetimer = 0;
 		}
 	}
 
+	if (m_ship->active == false)
+	{
+		Application::SceneManager(4);
+	}
+	if (survive >= 100 && m_ship->active == true)
+	{
+		Application::SceneManager(3);
+	}
 
 	//Calculating aspect ratio
 	m_worldHeight = 100.f;
@@ -270,7 +284,93 @@ void SceneAsteroid::Update(double dt)
 			damage->active = true;
 		}
 		poweruptimer = Math::RandIntMinMax(1, 10);
-		std::cout << powerup << std::endl;
+		//std::cout << powerup << std::endl;
+	}
+
+	//spawning enemy at random timings 
+	if (enemytimer <= 0)
+	{
+		enemyspawn = Math::RandIntMinMax(1, 3);
+		if (enemyspawn == 1)
+		{
+			//std::cout << "spawn" << std::endl;
+			//diagonally up
+			GameObject* enemy = FetchGO();
+			enemy->type = GameObject::GO_ENEMY;
+			enemy->pos.Set(0, 0, 0);
+			Vector3 d;
+			d.Set(m_worldWidth, m_worldHeight, 0);
+			//go->vel = m_ship->direction * BULLET_SPEED;
+			enemy->scale.Set(5.0f, 5.0f, 1.0f);
+			Vector3 dir;
+			enemy->vel.Set(0);
+			dir = d - enemy->pos;
+			//std::cout << dir << std::endl;
+			dir = dir.Normalize();
+			enemy->direction.Set(dir.x, dir.y, dir.z);
+			enemy->momentOfInertia = enemy->mass * enemy->scale.x * enemy->scale.x;
+			enemy->angularVelocity = 0;
+			enemy->force.SetZero();
+			enemy->torque.SetZero();
+
+			enemy->firerate = 1;
+			enemy->points = 50;
+			enemy->hp = 100;
+		}
+		else if (enemyspawn == 2)
+		{
+			//std::cout << "spawn" << std::endl;
+			//centre
+			GameObject* enemy = FetchGO();
+			enemy->type = GameObject::GO_ENEMY;
+			enemy->pos.Set(0, m_worldHeight / 2, 0);
+			Vector3 d;
+			d.Set(m_worldWidth, m_worldHeight / 2, 0);
+			//go->vel = m_ship->direction * BULLET_SPEED;
+			enemy->scale.Set(5.0f, 5.0f, 1.0f);
+			Vector3 dir;
+			enemy->vel.Set(0);
+			dir = d - enemy->pos;
+			//std::cout << dir << std::endl;
+			dir = dir.Normalize();
+			enemy->direction.Set(dir.x, dir.y, dir.z);
+			enemy->momentOfInertia = enemy->mass * enemy->scale.x * enemy->scale.x;
+			enemy->angularVelocity = 0;
+			enemy->force.SetZero();
+			enemy->torque.SetZero();
+
+			enemy->firerate = 1;
+			enemy->points = 50;
+			enemy->hp = 100;
+		}
+		else if (enemyspawn == 3)
+		{
+			//std::cout << "spawn" << std::endl;
+			//diagonally down
+			GameObject* enemy = FetchGO();
+			enemy->type = GameObject::GO_ENEMY;
+			enemy->pos.Set(0, m_worldHeight, 0);
+			Vector3 d;
+			d.Set(m_worldWidth, 0, 0);
+			//go->vel = m_ship->direction * BULLET_SPEED;
+			enemy->scale.Set(5.0f, 5.0f, 1.0f);
+			Vector3 dir;
+			enemy->vel.Set(0);
+			dir = d - enemy->pos;
+			//std::cout << dir << std::endl;
+			dir = dir.Normalize();
+			enemy->direction.Set(dir.x, dir.y, dir.z);
+			enemy->momentOfInertia = enemy->mass * enemy->scale.x * enemy->scale.x;
+			enemy->angularVelocity = 0;
+			enemy->force.SetZero();
+			enemy->torque.SetZero();
+			
+			enemy->firerate = 1;
+			enemy->points = 50;
+			enemy->hp = 100;
+		}
+		enemytimer = Math::RandFloatMinMax(1, 5);
+		//std::cout << enemyspawn << std::endl;
 	}
 
 	//Exercise 14: use a key to spawn a bullet
@@ -298,7 +398,7 @@ void SceneAsteroid::Update(double dt)
 	if(!bLButtonState && Application::IsMousePressed(0))
 	{
 		bLButtonState = true;
-		std::cout << "LBUTTON DOWN" << std::endl;
+		//std::cout << "LBUTTON DOWN" << std::endl;
 
 		//spawn black hole
 		GameObject* hole = FetchGO();
@@ -311,14 +411,14 @@ void SceneAsteroid::Update(double dt)
 	else if(bLButtonState && !Application::IsMousePressed(0))
 	{
 		bLButtonState = false;
-		std::cout << "LBUTTON UP" << std::endl;
+		//std::cout << "LBUTTON UP" << std::endl;
 
 	}
 	static bool bRButtonState = false;
 	if(!bRButtonState && Application::IsMousePressed(1))
 	{
 		bRButtonState = true;
-		std::cout << "RBUTTON DOWN" << std::endl;
+		//std::cout << "RBUTTON DOWN" << std::endl;
 		
 		//spawn white hole
 		GameObject* hole = FetchGO();
@@ -331,7 +431,7 @@ void SceneAsteroid::Update(double dt)
 	else if(bRButtonState && !Application::IsMousePressed(1))
 	{
 		bRButtonState = false;
-		std::cout << "RBUTTON UP" << std::endl;
+		//std::cout << "RBUTTON UP" << std::endl;
 	}
 
 	//Physics Simulation Section
@@ -339,6 +439,7 @@ void SceneAsteroid::Update(double dt)
 	//Exercise 7: Update ship's velocity based on m_force
 	//F = MA
 	//A = F * 1/M
+
 	Vector3 acceleration = m_force * (1.0f / m_ship->mass);
 	//Velocity
 	m_ship->vel += acceleration * dt * m_speed;
@@ -363,17 +464,11 @@ void SceneAsteroid::Update(double dt)
 
 	Bound(m_ship->pos.x, m_worldWidth);
 	Bound(m_ship->pos.y, m_worldHeight);
+	static int Bcount;
+	static std::vector<GameObject*> Shoot;
 
-	//temporary placeholders
-	//spawn enemy
-	if (Application::IsKeyPressed(VK_F9))
-	{
-		GameObject* enemy = FetchGO();
-		enemy->type = GameObject::GO_ENEMY;
-		enemy->pos.Set(30, 35, 0);
-		//go->vel = m_ship->direction * BULLET_SPEED;
-		enemy->scale.Set(1.0f, 1.0f, 1.0f);
-	}
+	Bcount = 0;
+	Shoot.clear();
 
 	for(std::vector<GameObject *>::iterator it = m_goList.begin(); it != m_goList.end(); ++it)
 	{
@@ -392,7 +487,7 @@ void SceneAsteroid::Update(double dt)
 				if (dis < cRad)
 				{
 					//go->active = false;
-					//m_lives -= 1;
+					//m_lives -= 0.01;
 				}
 
 				//Exercise 13: asteroids should wrap around the screen like the ship
@@ -415,7 +510,7 @@ void SceneAsteroid::Update(double dt)
 				for (std::vector<GameObject*>::iterator it2 = m_goList.begin(); it2 != m_goList.end(); ++it2)
 				{
 					GameObject* go2 = (GameObject*)*it2;
-					if (go2->type == GameObject::GO_ASTEROID || go2->type == GameObject::GO_ASTEROID_SMALL && go2->active)
+					if (go2->type == GameObject::GO_ASTEROID || go2->type == GameObject::GO_ASTEROID_SMALL || go2->type == GameObject::GO_ENEMY && go2->active)
 					{
 						float dis = go->pos.DistanceSquared(go2->pos);
 						float rad = (go->scale.x + go2->scale.x) * (go->scale.x + go2->scale.x);
@@ -518,7 +613,7 @@ void SceneAsteroid::Update(double dt)
 				for (std::vector<GameObject*>::iterator it2 = m_goList.begin(); it2 != m_goList.end(); ++it2)
 				{
 					GameObject* go2 = (GameObject*)*it2;
-					if (go2->type == GameObject::GO_ASTEROID || go2->type == GameObject::GO_ASTEROID_SMALL && go2->active)
+					if (go2->type == GameObject::GO_ASTEROID || go2->type == GameObject::GO_ASTEROID_SMALL || go2->type == GameObject::GO_ENEMY && go2->active)
 					{
 						float dis = go->pos.DistanceSquared(go2->pos);
 						float rad = (go->scale.x + go2->scale.x) * (go->scale.x + go2->scale.x);
@@ -539,7 +634,80 @@ void SceneAsteroid::Update(double dt)
 					}
 				}
 			}
+			else if (go->type == GameObject::GO_ENEMYBULLET)
+			{
+				if (go->pos.x > m_worldWidth
+					|| go->pos.x <0
+					|| go->pos.y > m_worldHeight
+					|| go->pos.y < 0)
+				{
+					go->active = false;
+					continue;
+				}
+				//Exercise 18: collision check between GO_ENEMYBULLET and GO_SHIP
+				
+				float dis = go->pos.DistanceSquared(m_ship->pos);
+				float rad = (go->scale.x + m_ship->scale.x) * (go->scale.x + m_ship->scale.x);
+				if (dis < rad)
+				{
+					go->active = false;
+					m_lives -= m_enemy_damage;
+					//std::cout << m_ship->hp << std::endl;
+					if (m_lives <= 0) // checking for player hp
+					{
+						m_ship->active = false;
+					}
+				}
+			}
+			else if (go->type == GameObject::GO_ENEMY)
+			{
+				if (go->pos.x > m_worldWidth
+					|| go->pos.x <0
+					|| go->pos.y > m_worldHeight
+					|| go->pos.y < 0)
+				{
+					go->active = false;
+					continue;
+				}
+				go->torque.SetZero();
+				go->force.SetZero();
+				go->force += go->direction * 100.0f;
+				Vector3 acceleration = go->force * (1.0f / go->mass);
+				//Velocity
+				go->vel += acceleration * dt * m_speed;
+
+				//Exercise 10: Cap Velocity magnitude (FLOAT) using MAX_SPEED (FLOAT)
+				if (go->vel.LengthSquared() > MAX_SPEED * MAX_SPEED)
+				{
+					go->vel.Normalize() *= MAX_SPEED;
+				}
+				//Position
+				go->pos += go->vel * dt * m_speed;
+
+				float angularAcceleration = go->torque.z / go->momentOfInertia;
+				go->angularVelocity += angularAcceleration * dt * m_speed;
+				go->angularVelocity = Math::Clamp(go->angularVelocity, -MAX_ROTATION_SPEED, MAX_ROTATION_SPEED);
+				go->direction = RotateVector(go->direction, go->angularVelocity * dt * m_speed);
+				go->angle = Math::RadianToDegree(atan2(go->direction.y, go->direction.x));
+				go->firerate -= dt;
+				if (go->firerate <= 0)
+				{
+					Bcount++;
+					Shoot.push_back(go);
+					go->firerate = 1;
+				}
+			}
 		}
+	}
+
+	//loop to cout bullet spawn
+	for (int i = 0; i < Bcount; i++)
+	{
+		GameObject* go2 = FetchGO();
+		go2->type = GameObject::GO_ENEMYBULLET;
+		go2->pos = Shoot[i]->pos;
+		go2->vel = Shoot[i]->direction * BULLET_SPEED;
+		go2->scale.Set(0.6f, 0.7f, 1.0f);
 	}
 }
 
@@ -588,8 +756,9 @@ void SceneAsteroid::RenderGO(GameObject *go)
 	case GameObject::GO_ENEMY:
 		modelStack.PushMatrix();
 		modelStack.Translate(go->pos.x, go->pos.y, go->pos.z);
+		modelStack.Rotate(go->angle, 0, 0, 1);
 		modelStack.Scale(go->scale.x, go->scale.y, go->scale.z);
-		RenderMesh(meshList[GEO_ENEMY], false);
+		RenderMesh(meshList[GEO_ENEMY], true);
 		modelStack.PopMatrix();
 		break;
 	case GameObject::GO_ENEMYBULLET:
@@ -771,6 +940,11 @@ void SceneAsteroid::Render()
 	//ss << "Speed: " << m_speed;
 	//RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 6);
 	
+	ss.str("");
+	ss.precision(5);
+	ss << "Timer: " << survive << "/100 seconds";
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 0, 3);
+
 	ss.str("");
 	ss.precision(5);
 	ss << "FPS: " << fps;

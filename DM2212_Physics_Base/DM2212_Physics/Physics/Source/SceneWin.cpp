@@ -447,10 +447,14 @@ void SceneWin::Render()
 	ss << std::setfill('0') << std::setw(5) << m_score;
 	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 65, 57);
 
-	//Render powerup
 	ss.str("");
-	ss << "Powerup Activated";
-	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 65, 57);
+	ss << "You Win, Press ESC to exit";
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 2, 20);
+
+	//Render powerup
+	//ss.str("");
+	//ss << "Powerup Activated";
+	//RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 65, 57);
 
 
 	/*ss.str("");

@@ -46,6 +46,9 @@ struct GameObject
 	float hp;
 	float points;
 	float timer;
+	float firerate;
+	Vector3 force;
+	Vector3 torque;
 
 	Vector3 direction;
 	float momentOfInertia;

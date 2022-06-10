@@ -447,10 +447,19 @@ void SceneMainMenu::Render()
 	ss << std::setfill('0') << std::setw(5) << m_score;
 	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 65, 57);
 
-	//Render powerup
+	//Main Menu
 	ss.str("");
+	ss << "SPACER";
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 32, 23);
+
+	ss.str("");
+	ss << "Press F1 to start";
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 15, 20);
+
+	//Render powerup
+	/*ss.str("");
 	ss << "Powerup Activated";
-	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 65, 57);
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 65, 57);*/
 
 
 	/*ss.str("");

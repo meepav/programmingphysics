@@ -104,7 +104,7 @@ void Application::Init()
 	m_height = 600;
 	m_window = glfwCreateWindow(m_width, m_height, "Physics", NULL, NULL);
 
-	ChangeScene = 1;
+	ChangeScene = 2;
 
 	//If the window couldn't be created
 	if (!m_window)
@@ -140,7 +140,7 @@ void Application::Run()
 	Scene* scenemenu = new SceneMainMenu();
 	Scene* scenewin = new SceneWin();
 	Scene* scenelose = new SceneLose();
-	Scene* scene = scenegame;
+	Scene* scene = scenemenu;
 	scene->Init();
 	scenegame->Init();
 	scenemenu->Init();
@@ -157,6 +157,14 @@ void Application::Run()
 		else if (IsKeyPressed(VK_F2))
 		{
 			SceneManager(2);
+		}
+		else if (IsKeyPressed(VK_F3))
+		{
+			SceneManager(3);
+		}
+		else if (IsKeyPressed(VK_F4))
+		{
+			SceneManager(4);
 		}
 		scene->Update(m_timer.getElapsedTime());
 		scene->Render();

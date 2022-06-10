@@ -447,10 +447,14 @@ void SceneLose::Render()
 	ss << std::setfill('0') << std::setw(5) << m_score;
 	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 65, 57);
 
-	//Render powerup
 	ss.str("");
+	ss << "You Lose, Press ESC to exit";
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 1, 20);
+
+	//Render powerup
+	/*ss.str("");
 	ss << "Powerup Activated";
-	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 65, 57);
+	RenderTextOnScreen(meshList[GEO_TEXT], ss.str(), Color(1, 1, 1), 3, 65, 57);*/
 
 
 	/*ss.str("");

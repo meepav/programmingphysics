@@ -69,12 +69,16 @@ protected:
 	int m_asteroid_points;
 
 	int powerup;
+	int enemyspawn;
 
 	double timer;
 	double poweruptimer;
 	double activatehealtimer;
 	double activatecanontimer;
 	double activatedamagetimer;
+	double enemytimer;
+	double survive;
+
 	double prevElapsed;
 	double elapsedTime;
 };
